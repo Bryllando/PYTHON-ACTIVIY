@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div>
+    <center class="text-2xl font-bold mb-4">
+        STUDENT RECORDS
+    </center>
+</div>
+
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+<div
+    class="mb-4 p-3 rounded {% if category == 'success' %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+    {{ message }}
+</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+
+<div class="flex justify-end mb-4">
+    <button id="addstudent"
+        class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition duration-200">
+        +Add Student
+    </button>
+</div>
+
+<div class="rounded-lg overflow-x-auto w-full">
+    <table class="min-w-full bg-white border border-gray-300">
+        <thead class="bg-[#305669]">
+            <tr class="text-white">
+                <th class="border border-gray-300 px-4 py-2">ID</th>
+                <th class="border border-gray-300 px-4 py-2 hidden sm:table-cell">LASTNAME</th>
+                <th class="border border-gray-300 px-4 py-2 hidden sm:table-cell">FIRSTNAME</th>
+                <th class="border border-gray-300 px-4 py-2 table-cell sm:hidden">FULLNAME</th>
+
+                <th class="border border-gray-300 px-4 py-2 hidden sm:table-cell">COURSE</th>
+                <th class="border border-gray-300 px-4 py-2 hidden sm:table-cell">LEVEL</th>
+                <th class="border border-gray-300 px-4 py-2 table-cell sm:hidden">COURSE & LEVEL</th>
+
+                <th class="border border-gray-300 px-4 py-2">ACTION</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student in students %}
+            <tr class="hover:bg-gray-50 transition duration-150">
+                <td class="border border-gray-300 px-4 py-2 text-center">{{ student.idno }}</td>
+                <td class="border border-gray-300 px-4 py-2 hidden sm:table-cell">{{ student.lastname }}</td>
+                <td class="border border-gray-300 px-4 py-2 hidden sm:table-cell">{{ student.firstname }}</td>
+                <td class="border border-gray-300 px-4 py-2 table-cell sm:hidden">{{ student.firstname }} {{
+                    student.lastname }}</td>
+
+                <td class="border border-gray-300 px-4 py-2 text-center hidden sm:table-cell">{{ student.course }}</td>
+                <td class="border border-gray-300 px-4 py-2 text-center hidden sm:table-cell">{{ student.level }}</td>
+                <td class="border border-gray-300 px-4 py-2 table-cell sm:hidden">{{ student.course }}, {{ student.level
+                    }}</td>
+
+                <td class="border border-gray-300 px-2 py-2 text-center">
+                    <div class="flex flex-col sm:flex-row gap-2 justify-center items-center">
+                        <button
+                            class="edit-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded w-full sm:w-auto flex items-center justify-center gap-1"
+                            data-id="{{ student.idno }}" data-lastname="{{ student.lastname }}"
+                            data-firstname="{{ student.firstname }}" data-course="{{ student.course }}"
+                            data-level="{{ student.level }}">
+                            <span>&#9998;</span>
+                            <span class="hidden sm:inline">EDIT</span>
+                        </button>
+                        <a href="{{ url_for('delete_student', student_id=student.idno) }}"
+                            class="delete-btn bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded w-full sm:w-auto flex items-center justify-center gap-1"
+                            onclick="return confirm('Are you sure you want to delete this student?')">
+                            <span>&#128465;</span>
+                            <span class="hidden sm:inline">DELETE</span>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="8" class="border border-gray-300 px-4 py-4 text-center text-gray-500">
+                    No students found. Click "Add Student" to add your first student.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal Overlay -->
+<div id="modalOverlay" class="fixed inset-0 z-50 hidden backdrop-blur-md transition-opacity duration-300">
+    <!-- Modal Content -->
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div id="modalContent"
+            class="bg-white rounded-lg shadow-xl w-full max-w-md transform transition-transform duration-300 scale-95 opacity-0">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 border-b border-gray-200 bg-[#305669] text-white rounded-t-lg">
+                <h2 id="modalTitle" class="text-xl font-semibold">Add New Student</h2>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="px-6 py-4">
+                <form id="studentForm" action="{{ url_for('add_student') }}" method="POST">
+                    <div class="mb-4">
+                        <label for="studentId" class="block text-sm font-medium text-gray-700 mb-1">Student ID</label>
+                        <input type="text" id="studentId" name="studentId"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                            required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="lastName" class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                        <input type="text" id="lastName" name="lastName"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                            required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="firstName" class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                        <input type="text" id="firstName" name="firstName"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                            required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="course" class="block text-sm font-medium text-gray-700 mb-1">Course</label>
+                        <select id="course" name="course"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                            required>
+                            <option value="" disabled selected>Select a course</option>
+                            <option value="BSCS">BSCS - Bachelor of Science in Computer Science</option>
+                            <option value="BSIT">BSIT - Bachelor of Science in Information Technology</option>
+                            <option value="BSCE">BSCE - Bachelor of Science in Civil Engineering</option>
+                            <option value="BSME">BSME - Bachelor of Science in Mechanical Engineering</option>
+                            <option value="BSBA">BSBA - Bachelor of Science in Business Administration</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-6">
+                        <label for="level" class="block text-sm font-medium text-gray-700 mb-1">Level</label>
+                        <select id="level" name="level"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                            required>
+                            <option value="" disabled selected>Select a level</option>
+                            <option value="1">1st Year</option>
+                            <option value="2">2nd Year</option>
+                            <option value="3">3rd Year</option>
+                            <option value="4">4th Year</option>
+                            <option value="5">5th Year</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+                <button id="cancelBtn" type="button"
+                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition duration-200">
+                    Cancel
+                </button>
+                <button id="saveBtn" type="button"
+                    class="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition duration-200">
+                    Save Student
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='responsive.js') }}"></script>
+{% endblock %}

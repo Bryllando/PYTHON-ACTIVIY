@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STUD MANAGEMENT</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css')}}">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="bg-linear-to-r from-[#ABE7B2] to-[#CBF3BB] p-3 sticky">
+        <div class="container flex rounded-full w-full h-10">
+            <img src="/static/image/logo.png" alt="STUDENT MANAGEMENT" class="h-full w-auto">
+            <div class="px-3 ml-4 self-center">
+                <h1 class="text-2xl font-mono font-bold text-black text-center italic">STUDENT MANAGEMENT v1.0</h1>
+            </div>
+        </div>
+    </header>
+
+    <!--Table-->
+    <div class="p-2  bg-[#ECF4E8] min-h-[533px]">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <!--Footer-->
+    <footer class="bg-[#93BFC7]">
+        <center class="text-1xl text-black font-serif italic font-bold container">
+            &copy; TABURNAL, Emmanuel Brylle O.
+        </center>
+    </footer>
+</body>
+
+</html>
