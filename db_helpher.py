@@ -1,60 +1,66 @@
 from sqlite3 import connect, Row
 import os
 
-database = '/temp/school.db'
+# Use a writable path for Vercel
+database = '/tmp/school.db'
 
 
 def init_db():
     """Initialize the database and create table if it doesn't exist"""
-    conn = connect(database)
-    cursor = conn.cursor()
+    try:
+        conn = connect(database)
+        cursor = conn.cursor()
 
-    # Check if table exists and if profile_picture column exists
-    cursor.execute(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='students'")
-    table_exists = cursor.fetchone()
+        # Check if table exists and if profile_picture column exists
+        cursor.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='students'")
+        table_exists = cursor.fetchone()
 
-    if table_exists:
-        # Check if profile_picture column exists
-        cursor.execute("PRAGMA table_info(students)")
-        columns = [column[1] for column in cursor.fetchall()]
+        if table_exists:
+            # Check if profile_picture column exists
+            cursor.execute("PRAGMA table_info(students)")
+            columns = [column[1] for column in cursor.fetchall()]
 
-        if 'profile_picture' not in columns:
-            # Add profile_picture column to existing table
-            cursor.execute(
-                'ALTER TABLE students ADD COLUMN profile_picture TEXT')
-            print("Added profile_picture column to existing table")
-    else:
-        # Create new table with profile_picture column
-        cursor.execute('''
-            CREATE TABLE students (
-                idno TEXT PRIMARY KEY,
-                lastname TEXT NOT NULL,
-                firstname TEXT NOT NULL,
-                course TEXT NOT NULL,
-                level TEXT NOT NULL,
-                profile_picture TEXT
-            )
-        ''')
+            if 'profile_picture' not in columns:
+                # Add profile_picture column to existing table
+                cursor.execute(
+                    'ALTER TABLE students ADD COLUMN profile_picture TEXT')
+                print("Added profile_picture column to existing table")
+        else:
+            # Create new table with profile_picture column
+            cursor.execute('''
+                CREATE TABLE students (
+                    idno TEXT PRIMARY KEY,
+                    lastname TEXT NOT NULL,
+                    firstname TEXT NOT NULL,
+                    course TEXT NOT NULL,
+                    level TEXT NOT NULL,
+                    profile_picture TEXT
+                )
+            ''')
 
-    # Insert sample data if empty
-    cursor.execute('SELECT COUNT(*) FROM students')
-    if cursor.fetchone()[0] == 0:
-        sample_students = [
-            ('1000', 'BAGUIO', 'THEODORE JAVE', 'BSIT', '1', None),
-            ('1001', 'DASDA', 'BAG', 'BSIT', '1', None),
-            ('1002', 'BROCODE', 'HALO', 'BSIT', '1', None),
-            ('1003', 'CHARLIE', 'TANGO', 'BSIT', '2', None),
-            ('1004', 'NOVEMBER', 'OSCAR', 'BSIT', '1', None),
-            ('1005', 'GUY', 'MILLOR', 'BSCS', '4', None)
-        ]
-        cursor.executemany('''
-            INSERT INTO students (idno, lastname, firstname, course, level, profile_picture)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', sample_students)
+        # Insert sample data if empty
+        cursor.execute('SELECT COUNT(*) FROM students')
+        if cursor.fetchone()[0] == 0:
+            sample_students = [
+                ('1000', 'BAGUIO', 'THEODORE JAVE', 'BSIT', '1', None),
+                ('1001', 'DASDA', 'BAG', 'BSIT', '1', None),
+                ('1002', 'BROCODE', 'HALO', 'BSIT', '1', None),
+                ('1003', 'CHARLIE', 'TANGO', 'BSIT', '2', None),
+                ('1004', 'NOVEMBER', 'OSCAR', 'BSIT', '1', None),
+                ('1005', 'GUY', 'MILLOR', 'BSCS', '4', None)
+            ]
+            cursor.executemany('''
+                INSERT INTO students (idno, lastname, firstname, course, level, profile_picture)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', sample_students)
 
-    conn.commit()
-    conn.close()
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"Database initialization error: {e}")
+        return False
 
 
 def get_all():
