@@ -4,30 +4,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STUD MANAGEMENT</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css')}}">
+    <title>STUDENT MANAGEMENT v1.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .header-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+        }
+    </style>
 </head>
 
-<body>
+<body class="bg-gray-50">
     <!-- Header -->
-    <header class="bg-linear-to-r from-[#ABE7B2] to-[#CBF3BB] p-3 sticky">
-        <div class="container flex rounded-full w-full h-10">
-            <img src="/static/image/logo.png" alt="STUDENT MANAGEMENT" class="h-full w-auto">
-            <div class="px-3 ml-4 self-center">
-                <h1 class="text-2xl font-mono font-bold text-black text-center italic">STUDENT MANAGEMENT v1.0</h1>
+    <header class="header-gradient shadow-lg">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex items-center justify-center">
+                <div class="bg-white rounded-full p-2 shadow-md">
+                    <img src="/static/image/logo.png" alt="STUDENT MANAGEMENT" class="h-12 w-12">
+                </div>
+                <div class="ml-4">
+                    <h1 class="text-3xl font-bold text-white text-center italic">STUDENT MANAGEMENT v1.0</h1>
+                </div>
             </div>
         </div>
     </header>
 
-    <!--Table-->
-    <div class="p-2  bg-[#ECF4E8] min-h-[533px]">
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-6">
         {% block content %}
         {% endblock %}
     </div>
 
-    <!--Footer-->
-    <footer class="bg-[#93BFC7]">
-        <center class="text-1xl text-black font-serif italic font-bold container">
+    <!-- Footer -->
+    <footer class="bg-gray-800 py-4 mt-8">
+        <center class="text-white text-sm font-semibold">
             &copy; TABURNAL, Emmanuel Brylle O.
         </center>
     </footer>

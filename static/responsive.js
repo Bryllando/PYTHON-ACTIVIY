@@ -1,56 +1,77 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const modalOverlay = document.getElementById('modalOverlay');
-    const modalContent = document.getElementById('modalContent');
-    const addStudentBtn = document.getElementById('addstudent');
     const cancelBtn = document.getElementById('cancelBtn');
     const saveBtn = document.getElementById('saveBtn');
     const studentForm = document.getElementById('studentForm');
-    const modalTitle = document.getElementById('modalTitle');
+    const profilePictureInput = document.getElementById('profilePictureInput');
+    const profilePreview = document.getElementById('profilePreview');
+    const defaultAvatar = document.getElementById('defaultAvatar');
+    const uploadButton = document.getElementById('uploadButton');
+    const profilePictureContainer = document.getElementById('profilePictureContainer');
 
-    // Show modal
-    function showModal() {
-        modalOverlay.classList.remove('hidden');
-        setTimeout(() => {
-            modalContent.classList.remove('scale-95', 'opacity-0');
-            modalContent.classList.add('scale-100', 'opacity-100');
-        }, 50);
-    }
+    let currentProfilePicture = null;
 
-    // Hide modal
-    function hideModal() {
-        modalContent.classList.remove('scale-100', 'opacity-100');
-        modalContent.classList.add('scale-95', 'opacity-0');
-        setTimeout(() => {
-            modalOverlay.classList.add('hidden');
-        }, 300);
-    }
+    // Trigger file input when upload button or container is clicked
+    uploadButton.addEventListener('click', function (e) {
+        e.stopPropagation();
+        profilePictureInput.click();
+    });
+
+    profilePictureContainer.addEventListener('click', function () {
+        profilePictureInput.click();
+    });
+
+    // Handle profile picture selection and preview
+    profilePictureInput.addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        if (file) {
+            // Validate file type
+            if (!file.type.match('image.*')) {
+                alert('Please select an image file');
+                return;
+            }
+
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Image size should be less than 5MB');
+                return;
+            }
+
+            // Preview the image
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                currentProfilePicture = e.target.result;
+                profilePreview.src = e.target.result;
+                profilePreview.classList.remove('hidden');
+                defaultAvatar.classList.add('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+    });
 
     // Reset form to add mode
     function resetToAddMode() {
         studentForm.reset();
-        modalTitle.textContent = 'Add New Student';
-        saveBtn.textContent = 'Save Student';
+        saveBtn.textContent = 'SAVE';
         studentForm.action = "/add_student";
         document.getElementById('studentId').disabled = false;
+
+        // Reset profile picture
+        profilePreview.classList.add('hidden');
+        defaultAvatar.classList.remove('hidden');
+        profilePictureInput.value = '';
+        currentProfilePicture = null;
+
+        // Reset select placeholders
+        document.getElementById('course').selectedIndex = 0;
+        document.getElementById('level').selectedIndex = 0;
     }
 
-    // Add Student button click
-    addStudentBtn.addEventListener('click', function () {
-        resetToAddMode();
-        showModal();
-    });
-
     // Cancel button click
-    cancelBtn.addEventListener('click', hideModal);
-
-    // Modal overlay click
-    modalOverlay.addEventListener('click', function (e) {
-        if (e.target === modalOverlay) {
-            hideModal();
-        }
+    cancelBtn.addEventListener('click', function () {
+        resetToAddMode();
     });
 
-    // Save Student button click - simply submit the form
+    // Save Student button click
     saveBtn.addEventListener('click', function () {
         // Basic validation
         const studentId = document.getElementById('studentId').value;
@@ -68,17 +89,16 @@ document.addEventListener('DOMContentLoaded', function () {
         studentForm.submit();
     });
 
-    // Edit button click - FIXED VERSION
+    // Edit button click
     document.addEventListener('click', function (e) {
-        // Find the closest .edit-btn button (works even if span is clicked)
         const editBtn = e.target.closest('.edit-btn');
-
         if (editBtn) {
             const studentId = editBtn.getAttribute('data-id');
             const lastname = editBtn.getAttribute('data-lastname');
             const firstname = editBtn.getAttribute('data-firstname');
             const course = editBtn.getAttribute('data-course');
             const level = editBtn.getAttribute('data-level');
+            const picture = editBtn.getAttribute('data-picture');
 
             // Fill form with student data
             document.getElementById('studentId').value = studentId;
@@ -87,14 +107,27 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('course').value = course;
             document.getElementById('level').value = level;
 
+            // Load profile picture if exists
+            if (picture) {
+                profilePreview.src = 'data:image/jpeg;base64,' + picture;
+                profilePreview.classList.remove('hidden');
+                defaultAvatar.classList.add('hidden');
+                currentProfilePicture = picture;
+            } else {
+                profilePreview.classList.add('hidden');
+                defaultAvatar.classList.remove('hidden');
+                currentProfilePicture = null;
+            }
+
             // Set to edit mode
-            modalTitle.textContent = 'Edit Student';
-            saveBtn.textContent = 'Update Student';
+            saveBtn.textContent = 'UPDATE';
             studentForm.action = `/edit_student/${studentId}`;
             document.getElementById('studentId').disabled = true;
 
-            // Show modal
-            showModal();
+            // Scroll to form on mobile
+            if (window.innerWidth < 1024) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         }
     });
 });

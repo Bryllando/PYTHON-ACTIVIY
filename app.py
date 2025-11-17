@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from db_helpher import init_db, get_all, get_record, add_record, update_record, delete_record
+import base64
+import os
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'  # Needed for flash messages
@@ -17,19 +19,26 @@ def home():
 @app.route('/add_student', methods=['POST'])
 def add_student():
     if request.method == 'POST':
+        profile_picture = None
+        if 'profile_picture' in request.files and request.files['profile_picture'].filename != '':
+            file = request.files['profile_picture']
+            if file and allowed_file(file.filename):
+                profile_picture = base64.b64encode(file.read()).decode('utf-8')
+
         student_data = {
             'studentId': request.form['studentId'],
             'lastName': request.form['lastName'],
             'firstName': request.form['firstName'],
             'course': request.form['course'],
-            'level': request.form['level']
+            'level': request.form['level'],
+            'profile_picture': profile_picture
         }
 
-        success = add_record(student_data)
+        success, message = add_record(student_data)
         if success:
             flash('Student added successfully!', 'success')
         else:
-            flash('Error adding student!', 'error')
+            flash(message, 'error')
 
     return redirect(url_for('home'))
 
@@ -44,24 +53,36 @@ def edit_student(student_id):
             'level': request.form['level']
         }
 
-        success = update_record(student_id, student_data)
+        # Handle profile picture update
+        if 'profile_picture' in request.files and request.files['profile_picture'].filename != '':
+            file = request.files['profile_picture']
+            if file and allowed_file(file.filename):
+                student_data['profile_picture'] = base64.b64encode(
+                    file.read()).decode('utf-8')
+
+        success, message = update_record(student_id, student_data)
         if success:
             flash('Student updated successfully!', 'success')
         else:
-            flash('Error updating student!', 'error')
+            flash(message, 'error')
 
     return redirect(url_for('home'))
 
 
 @app.route('/delete_student/<student_id>')
 def delete_student(student_id):
-    success = delete_record(student_id)
+    success, message = delete_record(student_id)
     if success:
         flash('Student deleted successfully!', 'success')
     else:
-        flash('Error deleting student!', 'error')
+        flash(message, 'error')
 
     return redirect(url_for('home'))
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
 
 
 if __name__ == "__main__":
