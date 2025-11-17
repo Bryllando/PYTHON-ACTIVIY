@@ -1,8 +1,11 @@
 from sqlite3 import connect, Row
 import os
 
+from sqlite3 import connect, Row
+import os
+
 # Vercel serverless compatible database path
-database = '/tmp/school.db' if os.path.exists('/tmp') else 'school.db'
+database = '/tmp/school.db' if 'VERCEL' in os.environ else 'school.db'
 
 
 def init_db():
