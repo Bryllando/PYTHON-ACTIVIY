@@ -1,7 +1,7 @@
 from sqlite3 import connect, Row
 import os
 
-# Use a writable path for Vercel
+# Use /tmp for Vercel serverless - note: data will reset on cold starts
 database = '/tmp/school.db'
 
 
@@ -11,7 +11,7 @@ def init_db():
         conn = connect(database)
         cursor = conn.cursor()
 
-        # Check if table exists and if profile_picture column exists
+        # Check if table exists
         cursor.execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name='students'")
         table_exists = cursor.fetchone()
@@ -22,7 +22,6 @@ def init_db():
             columns = [column[1] for column in cursor.fetchall()]
 
             if 'profile_picture' not in columns:
-                # Add profile_picture column to existing table
                 cursor.execute(
                     'ALTER TABLE students ADD COLUMN profile_picture TEXT')
                 print("Added profile_picture column to existing table")
@@ -38,6 +37,7 @@ def init_db():
                     profile_picture TEXT
                 )
             ''')
+            print("Created students table")
 
         # Insert sample data if empty
         cursor.execute('SELECT COUNT(*) FROM students')
@@ -54,6 +54,7 @@ def init_db():
                 INSERT INTO students (idno, lastname, firstname, course, level, profile_picture)
                 VALUES (?, ?, ?, ?, ?, ?)
             ''', sample_students)
+            print("Inserted sample data")
 
         conn.commit()
         conn.close()
@@ -65,6 +66,7 @@ def init_db():
 
 def get_all():
     """Get all student records"""
+    init_db()  # Ensure DB exists
     conn = connect(database)
     conn.row_factory = Row
     cursor = conn.cursor()
@@ -76,6 +78,7 @@ def get_all():
 
 def get_record(student_id):
     """Get a specific student record by ID"""
+    init_db()  # Ensure DB exists
     conn = connect(database)
     conn.row_factory = Row
     cursor = conn.cursor()
@@ -87,6 +90,7 @@ def get_record(student_id):
 
 def check_duplicate_id(student_id):
     """Check if student ID already exists"""
+    init_db()  # Ensure DB exists
     conn = connect(database)
     cursor = conn.cursor()
     cursor.execute('SELECT idno FROM students WHERE idno = ?', (student_id,))
@@ -97,6 +101,8 @@ def check_duplicate_id(student_id):
 
 def add_record(student_data):
     """Add a new student record"""
+    init_db()  # Ensure DB exists
+
     # Check for duplicate ID first
     if check_duplicate_id(student_data['studentId']):
         return False, "Student ID already exists!"
@@ -129,6 +135,8 @@ def add_record(student_data):
 
 def update_record(student_id, student_data):
     """Update an existing student record"""
+    init_db()  # Ensure DB exists
+
     conn = connect(database)
     cursor = conn.cursor()
     try:
@@ -172,6 +180,8 @@ def update_record(student_id, student_data):
 
 def delete_record(student_id):
     """Delete a student record"""
+    init_db()  # Ensure DB exists
+
     conn = connect(database)
     cursor = conn.cursor()
     try:
