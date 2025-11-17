@@ -1,11 +1,17 @@
 from sqlite3 import connect, Row
 import os
 
-from sqlite3 import connect, Row
-import os
+# Improved database path handling for Vercel
 
-# Vercel serverless compatible database path
-database = '/tmp/school.db' if 'VERCEL' in os.environ else 'school.db'
+
+def get_database_path():
+    if 'VERCEL' in os.environ:
+        return '/tmp/school.db'
+    else:
+        return 'school.db'
+
+
+database = get_database_path()
 
 
 def init_db():
@@ -14,38 +20,23 @@ def init_db():
         conn = connect(database)
         cursor = conn.cursor()
 
-        # Your existing table creation code remains the same...
-        # Check if table exists
-        cursor.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='students'")
-        table_exists = cursor.fetchone()
+        # Create table if it doesn't exist
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS students (
+                idno TEXT PRIMARY KEY,
+                lastname TEXT NOT NULL,
+                firstname TEXT NOT NULL,
+                course TEXT NOT NULL,
+                level TEXT NOT NULL,
+                profile_picture TEXT
+            )
+        ''')
 
-        if table_exists:
-            # Check if profile_picture column exists
-            cursor.execute("PRAGMA table_info(students)")
-            columns = [column[1] for column in cursor.fetchall()]
-
-            if 'profile_picture' not in columns:
-                cursor.execute(
-                    'ALTER TABLE students ADD COLUMN profile_picture TEXT')
-                print("Added profile_picture column to existing table")
-        else:
-            # Create new table with profile_picture column
-            cursor.execute('''
-                CREATE TABLE students (
-                    idno TEXT PRIMARY KEY,
-                    lastname TEXT NOT NULL,
-                    firstname TEXT NOT NULL,
-                    course TEXT NOT NULL,
-                    level TEXT NOT NULL,
-                    profile_picture TEXT
-                )
-            ''')
-            print("Created students table")
-
-        # Insert sample data if empty
+        # Check if table has data
         cursor.execute('SELECT COUNT(*) FROM students')
-        if cursor.fetchone()[0] == 0:
+        count = cursor.fetchone()[0]
+
+        if count == 0:
             sample_students = [
                 ('1000', 'BAGUIO', 'THEODORE JAVE', 'BSIT', '1', None),
                 ('1001', 'DASDA', 'BAG', 'BSIT', '1', None),
@@ -55,10 +46,9 @@ def init_db():
                 ('1005', 'GUY', 'MILLOR', 'BSCS', '4', None)
             ]
             cursor.executemany('''
-                INSERT INTO students (idno, lastname, firstname, course, level, profile_picture)
+                INSERT OR IGNORE INTO students (idno, lastname, firstname, course, level, profile_picture)
                 VALUES (?, ?, ?, ?, ?, ?)
             ''', sample_students)
-            print("Inserted sample data")
 
         conn.commit()
         conn.close()
@@ -67,53 +57,63 @@ def init_db():
         print(f"Database initialization error: {e}")
         return False
 
+# Rest of your functions remain the same...
+
 
 def get_all():
     """Get all student records"""
-    init_db()  # Ensure DB exists
-    conn = connect(database)
-    conn.row_factory = Row
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM students ORDER BY idno')
-    students = cursor.fetchall()
-    conn.close()
-    return students
+    try:
+        conn = connect(database)
+        conn.row_factory = Row
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM students ORDER BY idno')
+        students = cursor.fetchall()
+        conn.close()
+        return students
+    except Exception as e:
+        print(f"Error getting all records: {e}")
+        return []
 
 
 def get_record(student_id):
     """Get a specific student record by ID"""
-    init_db()  # Ensure DB exists
-    conn = connect(database)
-    conn.row_factory = Row
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM students WHERE idno = ?', (student_id,))
-    student = cursor.fetchone()
-    conn.close()
-    return student
+    try:
+        conn = connect(database)
+        conn.row_factory = Row
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM students WHERE idno = ?', (student_id,))
+        student = cursor.fetchone()
+        conn.close()
+        return student
+    except Exception as e:
+        print(f"Error getting record: {e}")
+        return None
 
 
 def check_duplicate_id(student_id):
     """Check if student ID already exists"""
-    init_db()  # Ensure DB exists
-    conn = connect(database)
-    cursor = conn.cursor()
-    cursor.execute('SELECT idno FROM students WHERE idno = ?', (student_id,))
-    existing_student = cursor.fetchone()
-    conn.close()
-    return existing_student is not None
+    try:
+        conn = connect(database)
+        cursor = conn.cursor()
+        cursor.execute(
+            'SELECT idno FROM students WHERE idno = ?', (student_id,))
+        existing_student = cursor.fetchone()
+        conn.close()
+        return existing_student is not None
+    except Exception as e:
+        print(f"Error checking duplicate: {e}")
+        return False
 
 
 def add_record(student_data):
     """Add a new student record"""
-    init_db()  # Ensure DB exists
-
-    # Check for duplicate ID first
-    if check_duplicate_id(student_data['studentId']):
-        return False, "Student ID already exists!"
-
-    conn = connect(database)
-    cursor = conn.cursor()
     try:
+        # Check for duplicate ID first
+        if check_duplicate_id(student_data['studentId']):
+            return False, "Student ID already exists!"
+
+        conn = connect(database)
+        cursor = conn.cursor()
         cursor.execute('''
             INSERT INTO students (idno, lastname, firstname, course, level, profile_picture)
             VALUES (?, ?, ?, ?, ?, ?)
@@ -126,25 +126,19 @@ def add_record(student_data):
             student_data.get('profile_picture')
         ))
         conn.commit()
-        success = True
-        message = "Student added successfully!"
+        conn.close()
+        return True, "Student added successfully!"
     except Exception as e:
         print(f"Error adding record: {e}")
-        success = False
-        message = f"Error adding student: {e}"
-    finally:
-        conn.close()
-    return success, message
+        return False, f"Error adding student: {e}"
 
 
 def update_record(student_id, student_data):
     """Update an existing student record"""
-    init_db()  # Ensure DB exists
-
-    conn = connect(database)
-    cursor = conn.cursor()
     try:
-        # Check if profile_picture is in student_data
+        conn = connect(database)
+        cursor = conn.cursor()
+
         if 'profile_picture' in student_data:
             cursor.execute('''
                 UPDATE students 
@@ -171,32 +165,22 @@ def update_record(student_id, student_data):
                 student_id
             ))
         conn.commit()
-        success = True
-        message = "Student updated successfully!"
+        conn.close()
+        return True, "Student updated successfully!"
     except Exception as e:
         print(f"Error updating record: {e}")
-        success = False
-        message = f"Error updating student: {e}"
-    finally:
-        conn.close()
-    return success, message
+        return False, f"Error updating student: {e}"
 
 
 def delete_record(student_id):
     """Delete a student record"""
-    init_db()  # Ensure DB exists
-
-    conn = connect(database)
-    cursor = conn.cursor()
     try:
+        conn = connect(database)
+        cursor = conn.cursor()
         cursor.execute('DELETE FROM students WHERE idno = ?', (student_id,))
         conn.commit()
-        success = True
-        message = "Student deleted successfully!"
+        conn.close()
+        return True, "Student deleted successfully!"
     except Exception as e:
         print(f"Error deleting record: {e}")
-        success = False
-        message = f"Error deleting student: {e}"
-    finally:
-        conn.close()
-    return success, message
+        return False, f"Error deleting student: {e}"

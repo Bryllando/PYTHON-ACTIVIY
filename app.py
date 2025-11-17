@@ -4,10 +4,9 @@ import base64
 import os
 
 app = Flask(__name__)
-app.secret_key = os.environ.get(
-    'SECRET_KEY', 'your_secret_key_here')  # Use environment variable
+app.secret_key = os.environ.get('SECRET_KEY', 'your_secret_key_here')
 
-# Initialize database
+# Initialize database on startup
 init_db()
 
 
@@ -54,7 +53,6 @@ def edit_student(student_id):
             'level': request.form['level']
         }
 
-        # Handle profile picture update
         if 'profile_picture' in request.files and request.files['profile_picture'].filename != '':
             file = request.files['profile_picture']
             if file and allowed_file(file.filename):
@@ -86,5 +84,6 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
 
 
+# Vercel needs this
 if __name__ == "__main__":
     app.run(debug=True)
