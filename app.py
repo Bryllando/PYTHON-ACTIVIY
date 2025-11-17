@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, flash
 from db_helpher import init_db, get_all, get_record, add_record, update_record, delete_record
 import base64
 import os
@@ -7,7 +7,7 @@ app = Flask(__name__)
 app.secret_key = os.environ.get(
     'SECRET_KEY', 'your_secret_key_here')  # Use environment variable
 
-# Initialize database on startup
+# Initialize database
 init_db()
 
 
@@ -15,11 +15,6 @@ init_db()
 def home():
     students = get_all()
     return render_template('students_table.html', students=students)
-
-
-@app.route('/static/<path:path>')
-def serve_static(path):
-    return send_from_directory('static', path)
 
 
 @app.route('/add_student', methods=['POST'])

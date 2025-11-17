@@ -1,8 +1,8 @@
 from sqlite3 import connect, Row
 import os
 
-# Use /tmp for Vercel serverless - note: data will reset on cold starts
-database = '/tmp/school.db'
+# Vercel serverless compatible database path
+database = '/tmp/school.db' if os.path.exists('/tmp') else 'school.db'
 
 
 def init_db():
@@ -11,6 +11,7 @@ def init_db():
         conn = connect(database)
         cursor = conn.cursor()
 
+        # Your existing table creation code remains the same...
         # Check if table exists
         cursor.execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name='students'")
