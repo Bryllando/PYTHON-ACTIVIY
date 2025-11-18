@@ -204,7 +204,7 @@
                                 <td class="px-2 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-center">
                                     <div class="flex justify-center space-x-1 sm:space-x-2">
                                         <button
-                                            class="edit-btn bg-red-500 hover:bg-red-600 text-white px-2 py-1 sm:px-3 sm:py-1 rounded transition-colors duration-200 text-xs sm:text-sm"
+                                            class="edit-btn bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 sm:px-3 sm:py-1 rounded transition-colors duration-200 text-xs sm:text-sm"
                                             data-id="{{ student.idno }}" data-lastname="{{ student.lastname }}"
                                             data-firstname="{{ student.firstname }}" data-course="{{ student.course }}"
                                             data-level="{{ student.level }}"
@@ -212,7 +212,7 @@
                                             ✏️
                                         </button>
                                         <a href="{{ url_for('delete_student', student_id=student.idno) }}"
-                                            class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 sm:px-3 sm:py-1 rounded transition-colors duration-200 text-xs sm:text-sm inline-block"
+                                            class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 sm:px-3 sm:py-1 rounded transition-colors duration-200 text-xs sm:text-sm inline-block"
                                             onclick="return confirm('Are you sure you want to delete this student?')">
                                             🗑️
                                         </a>
